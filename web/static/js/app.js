@@ -55,7 +55,59 @@ var potocol = 'ws';
 if (location.protocol.indexOf('s') >= 0) {
   potocol = 'wss';
 }
-
+function getHiddenProp(){
+  var prefixes = ['webkit','moz','ms','o'];
+  // 如果hidden 属性是原生支持的，我们就直接返回
+  if ('hidden' in document) {
+    return 'hidden';
+  }
+  // 其他的情况就循环现有的浏览器前缀，拼接我们所需要的属性 
+  for (var i = 0; i < prefixes.length; i++){
+    // 如果当前的拼接的前缀在 document对象中存在 返回即可
+    if ((prefixes[i] + 'Hidden') in document) {
+      return prefixes[i] + 'Hidden';
+    }  
+  }
+  // 其他的情况 直接返回null
+  return null;
+}
+var visProp = getHiddenProp();
+if (visProp) {
+  // 有些浏览器也需要对这个事件加前缀以便识别。
+  var evtname = visProp.replace(/[H|h]idden/, '') + 'visibilitychange';
+  var oldState = "visible";
+  document.addEventListener(evtname, function () {
+    var nowstate = document[getVisibilityState()];
+    document.title = nowstate+"状态";
+    console.log(nowstate)
+    if(oldState!=nowstate){
+       switch(nowstate){
+          case "visible":
+            startup()
+            break;
+          case "hidden":
+            ws.close()
+            ms.removeEventListener("sourceopen", opened, false);
+            livestream.src = "";
+            break;
+       }
+       oldState = nowstate;
+    }
+  },false);
+}
+function getVisibilityState() {
+  var prefixes = ['webkit', 'moz', 'ms', 'o'];
+  if ('visibilityState' in document) {
+    return 'visibilityState';
+  }
+  for (var i = 0; i < prefixes.length; i++) {
+    if ((prefixes[i] + 'VisibilityState') in document){
+      return prefixes[i] + 'VisibilityState';
+    }  
+  }
+  // 找不到返回 null
+  return null;
+}
 function opened() {
   var suuid = $('#suuid').val();
   var url = $('#url').val();

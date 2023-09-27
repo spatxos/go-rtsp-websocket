@@ -49,20 +49,6 @@ function loadPacket() {
       // streamingStarted = false;
     }
   }
-  // if (livestream.buffered.length > 0) {
-  //   if (typeof document.hidden !== "undefined" && document.hidden) {
-  //     if (typeof livestream.webkitAudioDecodedByteCount!== "undefined"  && livestream.webkitAudioDecodedByteCount > 0) {
-  //       //stream has sound but in background it may lag behind
-  //       if ((livestream.buffered.end((livestream.buffered.length - 1)) - livestream.currentTime) > 10) {
-  //         //more 10 seconds lag
-  //         livestream.currentTime = livestream.buffered.end((livestream.buffered.length - 1)) - 0.5;
-  //       }
-  //     } else {
-  //       //no sound, browser paused video without sound in background
-  //       livestream.currentTime = livestream.buffered.end((livestream.buffered.length - 1)) - 0.5;
-  //     }
-  //   }
-  // }
 }
 
 var potocol = 'ws';
@@ -71,9 +57,12 @@ if (location.protocol.indexOf('s') >= 0) {
 }
 
 function opened() {
-  var inputVal = $('#suuid').val();
+  var suuid = $('#suuid').val();
+  var url = $('#url').val();
   var port = $('#port').val();
-  ws = new WebSocket(potocol + "://127.0.0.1"+port+"/ws/live?suuid="+inputVal);
+  ws = new WebSocket(potocol + "://127.0.0.1:"+port+"/ws/live?suuid="+suuid+"&url="+url);
+  // ws = new WebSocket(potocol + "://127.0.0.1:8888/ws/live?suuid=demo1");
+
   ws.binaryType = "arraybuffer";
   ws.onopen = function(event) {
     console.log('Connect');
@@ -129,12 +118,15 @@ function Utf8ArrayToStr(array) {
 }
 
 function startup() {
+  if(ws!=undefined){
+    ws.close()
+    ms.removeEventListener("sourceopen", opened, false);
+    livestream.src = "";
+  }
   ms.addEventListener('sourceopen', opened, false);
   livestream.src = window.URL.createObjectURL(ms);
 }
 
-$(document).ready(function() {
-startup();
-  var suuid = $('#suuid').val();
-  $('#'+suuid).addClass('active');
-});
+// $(document).ready(function() {
+//   startup();
+// });

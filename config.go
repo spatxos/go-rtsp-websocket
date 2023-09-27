@@ -4,11 +4,10 @@ import (
 	"crypto/rand"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"log"
+	"os"
 
 	"github.com/deepch/vdk/av"
-
 )
 
 var Config = loadConfig()
@@ -34,7 +33,7 @@ type viwer struct {
 
 func loadConfig() *ConfigST {
 	var tmp ConfigST
-	data, err := ioutil.ReadFile("config.json")
+	data, err := os.ReadFile("config.json")
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -46,6 +45,7 @@ func loadConfig() *ConfigST {
 		v.Cl = make(map[string]viwer)
 		tmp.Streams[i] = v
 	}
+	tmp.Streams = make(map[string]StreamST)
 	return &tmp
 }
 
@@ -60,6 +60,16 @@ func (element *ConfigST) cast(uuid string, pck av.Packet) {
 func (element *ConfigST) ext(suuid string) bool {
 	_, ok := element.Streams[suuid]
 	return ok
+}
+
+func (element *ConfigST) add(suuid string, url string) bool {
+	if _, ok := element.Streams[suuid]; !ok {
+		element.Streams[suuid] = StreamST{
+			URL: url,
+			Cl:  make(map[string]viwer),
+		}
+	}
+	return true
 }
 
 func (element *ConfigST) coAd(suuid string, codecs []av.CodecData) {
